@@ -3,6 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Paystack {
 
+  const PACKAGE = "francis94c/ci-paystack";
+
   const CURL_RETURN_ERROR = "curl_return_error";
 
   const API_ERROR = "api_error";
@@ -22,6 +24,7 @@ class Paystack {
   function __construct($params=null) {
     if (isset($params["secret_key"])) $this->secretKey = $params["secret_key"];
     $this->ci =& get_instance();
+    $this->ci->load->splint(self::PACKAGE, "+PayStackEvents");
   }
   /**
    * [authorizeTransaction description]
@@ -29,15 +32,33 @@ class Paystack {
    * @param  [type] $amount [description]
    * @return [type]         [description]
    */
-  function authorizeTransaction($email, $amount, $reference) {
+  function authorizeTransaction($email, $amount, $reference=null, $callback=null) {
+    $data = array();
+    if (is_array($email)) {
+      $data["email"] = $email["email"];
+      $data["amount"] = $email["amount"];
+      if ($email["reference"]) $data["reference"] = $email["reference"];
+      if ($email["quantity"]) $data["quantity"] = $email["quantity"];
+      if ($email["callback_url"]) $data["callback_url"] = $email["callback_url"];
+      if ($email["plan"]) $data["plan"] = $email["plan"];
+      if ($email["invoice_limit"]) $data["invoice_limit"] = $email["invoice_limit"];
+      if ($email["metadata"]) $data["metadata"] = $email["metadata"];
+      if ($email["cancel_action"]) $data["metadata.cancel_action"] = $email["cancel_action"];
+      if ($email["subaccount"]) $data["subaccount"] = $email["subaccount"];
+      if ($email["transaction_charge"]) $data["transaction_charge"] = $email["transaction_charge"];
+      if ($email["bearer"]) $data["bearer"] = $email["bearer"];
+      if ($email["channels"]) $data["channels"] = $email["channels"];
+    } else {
+      $data["email"] = $email;
+      $data["amount"] = $amount;
+      if ($reference != null) $data["reference"] = $reference;
+      if ($callback != null) $data["callback_url"] = $callback;
+    }
     curl_setopt_array($curl, array(
       CURLOPT_URL => "https://api.paystack.co/transaction/initialize",
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_CUSTOMREQUEST => "POST",
-      CURLOPT_POSTFIELDS => json_encode([
-        "amount" => $amount,
-        "email"  => $email,
-      ]),
+      CURLOPT_POSTFIELDS => json_encode($data),
       CURLOPT_HTTPHEADER => [
         "authorization: Bearer $this->secretKey",
         "content-type: application/json",
@@ -73,10 +94,10 @@ class Paystack {
     return $this->lastAPIError;
   }
   /**
-   * [handleChargeSuccessEvent description]
+   * [handleEvent description]
    * @return [type] [description]
    */
-  function handleChargeSuccessEvent() {
+  function handleEvent() {
     // Verify request type.
     if ((strtoupper($_SERVER['REQUEST_METHOD']) != 'POST' ) ||
     !array_key_exists('HTTP_X_PAYSTACK_SIGNATURE', $_SERVER)) return false;
@@ -98,7 +119,7 @@ class Paystack {
     http_response_code(200);
     $event = json_decode($body);
     $this->lastResponseData = $event;
-    return $event->event === "charge.success";
+    return $event->event;
   }
   /**
    * [verifyTransaction description]
