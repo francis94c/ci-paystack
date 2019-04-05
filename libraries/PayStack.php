@@ -97,8 +97,8 @@ class PayStack {
     return $transaction->data->authorization_url;
   }
   /**
-   * [getLastCurlError description]
-   * @return [type] [description]
+   * [getLastCurlError gets the last CURL merror message if any.]
+   * @return string CURL error message.
    */
   function getLastCurlError() {
     return $this->lastCurlError;
