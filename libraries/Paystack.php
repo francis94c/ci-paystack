@@ -30,10 +30,19 @@ class PayStack {
     $this->ci->load->splint(self::PACKAGE, "+PayStackEvents");
   }
   /**
-   * [authorizeTransaction description]
-   * @param  [type] $email  [description]
-   * @param  [type] $amount [description]
-   * @return [type]         [description]
+   * [authorizeTransaction function to begin the authorizationof a transaction.
+   * this will return an authorization URL to redirect to if successfull. you
+   * can also call getData(); to get some other information about the
+   * authorization.]
+   * @param  string $email     email address of the customer.
+   * @param  int    $amount    amount in kobo or in the smallest unit of any
+   *                           currency.
+   * @param  string $reference serially crafted string to  identify transactions.
+   *                           this parameter is very handy when tracking a
+   *                           transaction.
+   * @param  string $callback  the url to redirect to if transaction was
+   *                           successful.
+   * @return string            the authorized transaction url.
    */
   function authorizeTransaction($email, $amount, $reference=null, $callback=null) {
     $data = array();
