@@ -10,10 +10,7 @@ class PayStackTest {
     $params["verify_host"] = false;
     $splint->load->library("PayStack", $params, "paystack");
     $url = $ci->paystack->authorizeTransaction("francis94c@gmail.com", 3000, "day558taa4t-tranxt47");
-    $ci->load->helper("url");
-    echo $url;
-    echo $ci->paystack->getLastCurlError();
-    echo $ci->paystack->getLastApiError();
+    $ci->unit->run($ci->paystack->verifyTransaction("day558taa4t-tranxt47"), true, "Verify Transaction.");
   }
 }
 ?>

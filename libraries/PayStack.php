@@ -142,23 +142,27 @@ class PayStack {
    * [verifyTransaction description]
    * @return [type] [description]
    */
-  function verifyTransaction() {
-    $curl = curl_init();
-    $reference = $this->ci->input->get("reference") != "" ? $this->ci->input->get("reference") : "";
+  function verifyTransaction($reference=null) {
+    $reference = $reference != null ? $reference : ($this->ci->input->get("reference") != "" ? $this->ci->input->get("reference") : "");
     if (!$reference) return self::NO_REFERENCE;
+    $curl = curl_init();
+    if (!$this->verifyHost) {
+      curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    }
     curl_setopt_array($curl, array(
       CURLOPT_URL => "https://api.paystack.co/transaction/verify/" . rawurlencode($reference),
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_HTTPHEADER => [
         "accept: application/json",
-        "authorization: Bearer $this->secret_key",
+        "authorization: Bearer $this->secretKey",
         "cache-control: no-cache"
       ],
     ));
     $response = curl_exec($curl);
     $err = curl_error($curl);
     if ($err) {
-      $this->$lastCurlError = $err;
+      $this->lastCurlError = $err;
       return self::CURL_RETURN_ERROR;
     }
     $transaction = json_decode($response);
