@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Paystack {
+class PayStack {
 
   const PACKAGE = "francis94c/ci-paystack";
 
@@ -15,6 +15,8 @@ class Paystack {
 
   private $secretKey;
 
+  private $verifyHost = true;
+
   private $lastCurlError;
 
   private $lastAPIError;
@@ -23,6 +25,7 @@ class Paystack {
 
   function __construct($params=null) {
     if (isset($params["secret_key"])) $this->secretKey = $params["secret_key"];
+    if (isset($params["verify_host"])) $this->verifyHost = $params["verify_host"];
     $this->ci =& get_instance();
     $this->ci->load->splint(self::PACKAGE, "+PayStackEvents");
   }
@@ -54,6 +57,11 @@ class Paystack {
       if ($reference != null) $data["reference"] = $reference;
       if ($callback != null) $data["callback_url"] = $callback;
     }
+    $curl = curl_init();
+    if (!$this->verifyHost) {
+      curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    }
     curl_setopt_array($curl, array(
       CURLOPT_URL => "https://api.paystack.co/transaction/initialize",
       CURLOPT_RETURNTRANSFER => true,
@@ -68,7 +76,7 @@ class Paystack {
     $response = curl_exec($curl);
     $err = curl_error($curl);
     if ($err) {
-      $this->$lastCurlError = $err;
+      $this->lastCurlError = $err;
       return self::CURL_RETURN_ERROR;
     }
     $transaction = json_decode($response);
@@ -84,7 +92,7 @@ class Paystack {
    * @return [type] [description]
    */
   function getLastCurlError() {
-    return $this->$lastCurlError;
+    return $this->lastCurlError;
   }
   /**
    * [getLastApiError description]
