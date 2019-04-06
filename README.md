@@ -1,7 +1,7 @@
 # ci-paystack #
 ----
 
-ci-paystack is PHP library for the integrating the PayStack payment gate way in your Code Igniter Web Applications.
+ci-paystack is a PHP library for integrating the PayStack payment gate way in your Code Igniter Web Applications.
 
 ## Installation ##
 
@@ -74,17 +74,17 @@ You could do this within a controller that will handle the automated request fro
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class PayStackWebHook {
-    
+
     function index() {
         $params = array(
             "secret_key" => "sk_fnljsbkjvxnlkvnkhbvknd34es"
         );
         $this->load->splint("francis94c/ci-paystack", "+PayStack", $params, "paystack");
-        
+
         $event = $this->paystack->handleEvent(); // Get Event.
-        
+
         $amount = 40000 // Get this from a database.
-        
+
         if ($event == PayStackEvents::CHARGE_SUCCESS) {
             // Probably verify transaction reference (Optional)
             $reference = $this->paystack->getData()["data"]["reference"];
@@ -103,4 +103,3 @@ class PayStackWebHook {
 ## Wiki ##
 
 Please visit https://github.com/francis94c/ci-paystack/wiki
-
